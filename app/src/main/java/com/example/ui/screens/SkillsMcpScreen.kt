@@ -43,18 +43,20 @@ fun SkillsMcpScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = Slate950,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    if (selectedTab == 0) showAddSkillDialog = true else showAddMcpDialog = true
-                },
-                containerColor = CyanBright,
-                contentColor = Slate950,
-                modifier = Modifier.testTag("add_skill_or_mcp_fab")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = if (selectedTab == 0) "Přidat dovednost" else "Přidat MCP Server"
-                )
+            if (selectedTab == 0 || selectedTab == 5) {
+                FloatingActionButton(
+                    onClick = {
+                        if (selectedTab == 0) showAddSkillDialog = true else showAddMcpDialog = true
+                    },
+                    containerColor = CyanBright,
+                    contentColor = Slate950,
+                    modifier = Modifier.testTag("add_skill_or_mcp_fab")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = if (selectedTab == 0) "Přidat dovednost" else "Přidat MCP Server"
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -63,32 +65,54 @@ fun SkillsMcpScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Header TabRow
-            TabRow(
+            // Header ScrollableTabRow
+            ScrollableTabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Slate900,
-                contentColor = CyanBright
+                contentColor = CyanBright,
+                edgePadding = 8.dp
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("🧠 Dovednosti (${skills.size})") }
+                    text = { Text("🧠 Skilly (${skills.size})", fontSize = 12.sp) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("🔌 MCP Servery (${mcpServers.size})") }
+                    text = { Text("⚡ Registr & Řetězení", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    text = { Text("✨ Autolearn", fontSize = 12.sp) }
+                )
+                Tab(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    text = { Text("📜 .MD Archiv", fontSize = 12.sp) }
+                )
+                Tab(
+                    selected = selectedTab == 4,
+                    onClick = { selectedTab = 4 },
+                    text = { Text("🐙 GitHub", fontSize = 12.sp) }
+                )
+                Tab(
+                    selected = selectedTab == 5,
+                    onClick = { selectedTab = 5 },
+                    text = { Text("🔌 MCP (${mcpServers.size})", fontSize = 12.sp) }
                 )
             }
 
-            if (selectedTab == 0) {
-                // Skills List
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+            when (selectedTab) {
+                0 -> {
+                    // Skills List
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Slate900),
@@ -137,7 +161,32 @@ fun SkillsMcpScreen(
                         )
                     }
                 }
-            } else {
+            }
+            1 -> {
+                SkillRegistryView(
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            2 -> {
+                AutoLearnedSkillsView(
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            3 -> {
+                SessionMarkdownArchiveView(
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            4 -> {
+                GitHubIntegrationView(
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            5 -> {
                 // MCP Servers List
                 LazyColumn(
                     modifier = Modifier
@@ -200,6 +249,7 @@ fun SkillsMcpScreen(
             }
         }
     }
+}
 
     if (showAddSkillDialog) {
         AddSkillDialog(

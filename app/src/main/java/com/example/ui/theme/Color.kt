@@ -20,11 +20,13 @@ val CyanBright = Color(0xFF38BDF8)
 val EmeraldSuccess = Color(0xFF10B981)
 val EmeraldBright = Color(0xFF34D399)
 val AmberWarning = Color(0xFFF59E0B)
+val AmberBright = Color(0xFFFBBF24)
 val RoseError = Color(0xFFF43F5E)
 val CrimsonError = RoseError
 val EmeraldDark = Color(0xFF047857)
 val VioletPurple = Color(0xFF8B5CF6)
 val PurpleAccent = VioletPurple
+val MagentaBright = Color(0xFFEC4899)
 val IndigoAccent = Color(0xFF6366F1)
 
 // Code Syntax Colors

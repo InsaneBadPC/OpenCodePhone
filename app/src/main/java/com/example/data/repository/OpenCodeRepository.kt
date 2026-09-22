@@ -20,6 +20,7 @@ class OpenCodeRepository(
     val skillDao = db.skillDao()
     val mcpDao = db.mcpDao()
     val pluginDao = db.pluginDao()
+    val skillRegistryDao = db.skillRegistryDao()
 
     val webSearchService = WebSearchService()
     val terminalExecutor = TerminalExecutor(workspaceDao)
@@ -30,6 +31,7 @@ class OpenCodeRepository(
     val allSkills: Flow<List<SkillEntity>> = skillDao.getAllSkills()
     val allMcpServers: Flow<List<McpServerEntity>> = mcpDao.getAllServers()
     val allPlugins: Flow<List<PluginEntity>> = pluginDao.getAllPlugins()
+    val allRegisteredSkills: Flow<List<SkillRegistryEntity>> = skillRegistryDao.getAllRegisteredSkills()
 
     init {
         scope.launch {
@@ -497,6 +499,95 @@ class OpenCodeRepository(
 
                         S jakým vývojářským úkolem dnes začneme?
                     """.trimIndent()
+                )
+            )
+        }
+
+        // 6. Initial Registered Skills in Skill Registry (Local Room DB)
+        val existingRegisteredSkills = skillRegistryDao.getAllRegisteredSkills().first()
+        if (existingRegisteredSkills.isEmpty()) {
+            skillRegistryDao.insertSkills(
+                listOf(
+                    SkillRegistryEntity(
+                        id = "skill_reg_git_pipeline",
+                        name = "Git Test-Verify-Commit Pipeline",
+                        description = "Sekvence pro validaci kódu, kontrolu linteru, staging změn a vytvoření strukturovaného Git commitu.",
+                        category = "DevOps",
+                        executionStepsJson = """["Spustit gradle compile_applet a zkontrolovat syntaxi", "Zkontrolovat git status v pracovním adresáři", "Označit modifikované soubory (git add -A)", "Vygenerovat sémantickou commit zprávu podle konvence Conventional Commits", "Vytvořit commit v lokálním repozitáři"]""",
+                        requiredTools = "terminal, git, linter",
+                        successScore = 1.0f,
+                        executionCount = 6,
+                        lastUsedTimestamp = System.currentTimeMillis() - 3600000,
+                        isChainable = true,
+                        inputTemplate = "commit_type, commit_summary",
+                        outputArtifact = "Verified Commit & Clean Working Tree",
+                        autoDetected = true,
+                        triggerPattern = "compile_pass && git_status_dirty"
+                    ),
+                    SkillRegistryEntity(
+                        id = "skill_reg_code_refactor",
+                        name = "Compose UI Refactoring & M3 Cleanup",
+                        description = "Automatické ověření parametrů Modifier, doplnění accessibility contentDescription a migrace na M3 colorScheme.",
+                        category = "Refactoring",
+                        executionStepsJson = """["Analyzovat Composable funkce v cílovém souboru", "Zajistit předávání Modifieru jako prvního volitelného parametru", "Doplnit unikátní Modifier.testTag pro testovatelnost", "Nahradit pevné hex barvy za MaterialTheme.colorScheme", "Zkontrolovat minimální touch target 48dp"]""",
+                        requiredTools = "file_editor, syntax_analyzer",
+                        successScore = 0.98f,
+                        executionCount = 4,
+                        lastUsedTimestamp = System.currentTimeMillis() - 7200000,
+                        isChainable = true,
+                        inputTemplate = "target_composable_file",
+                        outputArtifact = "Refactored Clean Composable",
+                        autoDetected = true,
+                        triggerPattern = "compose_ui_detected"
+                    ),
+                    SkillRegistryEntity(
+                        id = "skill_reg_security_scan",
+                        name = "Secrets & Hardcoded Keys Scanner",
+                        description = "Skenování souborů workspace na přítomnost nezašifrovaných API klíčů, tokenů a hesel před publikací.",
+                        category = "Bezpečnost",
+                        executionStepsJson = """["Prohledat kód na regex vzory API klíčů (AIza, sk-, ghp_)", "Ověřit zda klíče nejsou v git commit historii", "Přesunout nalezená tajemství do Secrets panelu / .env", "Nahradit volání bezpečným BuildConfig odkazem"]""",
+                        requiredTools = "grep, regex_scanner, file_patch",
+                        successScore = 1.0f,
+                        executionCount = 8,
+                        lastUsedTimestamp = System.currentTimeMillis() - 14400000,
+                        isChainable = true,
+                        inputTemplate = "scan_directory",
+                        outputArtifact = "Zero Exposed Secrets Report",
+                        autoDetected = true,
+                        triggerPattern = "pre_commit_hook"
+                    ),
+                    SkillRegistryEntity(
+                        id = "skill_reg_doc_sync",
+                        name = "Architecture & Mermaid Diagram Generator",
+                        description = "Vygenerování aktuálního Markdown popisu a Mermaid diagramu datových toků po úspěšné refaktorizaci.",
+                        category = "Dokumentace",
+                        executionStepsJson = """["Prozkoumat závislosti mezi ViewModel, Repository a DAO", "Sestavit textový Mermaid class/flow diagram", "Aktualizovat ARCHITECTURE.md v kořeni projektu", "Zaznamenat verzi do changelogu"]""",
+                        requiredTools = "diagram_engine, file_writer",
+                        successScore = 0.95f,
+                        executionCount = 3,
+                        lastUsedTimestamp = System.currentTimeMillis() - 86400000,
+                        isChainable = true,
+                        inputTemplate = "module_scope",
+                        outputArtifact = "Updated ARCHITECTURE.md with Mermaid Graph",
+                        autoDetected = true,
+                        triggerPattern = "feature_completed"
+                    ),
+                    SkillRegistryEntity(
+                        id = "skill_reg_db_migration",
+                        name = "Room Entity & Migration Validator",
+                        description = "Ověření kompatibility schématu Room databáze, inkrementace verze a kontrola DAO metod.",
+                        category = "Databáze",
+                        executionStepsJson = """["Zkontrolovat primární klíče u všech @Entity tříd", "Ověřit flow návratové typy u DAO selekcí", "Zkontrolovat fallbackToDestructiveMigration nebo Migration skript", "Spustit testovací dotaz na SQLite jádro"]""",
+                        requiredTools = "sqlite_validator, terminal",
+                        successScore = 1.0f,
+                        executionCount = 5,
+                        lastUsedTimestamp = System.currentTimeMillis() - 172800000,
+                        isChainable = true,
+                        inputTemplate = "database_class",
+                        outputArtifact = "Verified Database Schema",
+                        autoDetected = true,
+                        triggerPattern = "entity_modified"
+                    )
                 )
             )
         }
