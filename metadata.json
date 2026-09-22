@@ -1,0 +1,6 @@
+{
+  "name": "OpenCode",
+  "description": "Nativní vývojářské prostředí OpenCode se správou pluginů, Zen AI modely, editorem souborů, internetovým vyhledáváním a MCP servery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
