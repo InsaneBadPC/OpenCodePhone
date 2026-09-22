@@ -1,0 +1,71 @@
+name: Build OpenCode APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Set up Android SDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" >/dev/null 2>&1 || true
+
+      - name: Restore release keystore
+        run: base64 -d <<< "${CI_KEYSTORE}" > ci-upload.jks
+        env:
+          CI_KEYSTORE: ${{ secrets.CI_KEYSTORE }}
+
+      - name: Write .env (GEMINI_API_KEY)
+        run: printf 'GEMINI_API_KEY=%s\n' "${KEY}" > .env
+        env:
+          KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Build release APK
+        run: gradle assembleRelease --no-daemon
+        env:
+          KEYSTORE_PATH: ci-upload.jks
+          STORE_PASSWORD: ${{ secrets.CI_KEYSTORE_PASS }}
+          KEY_PASSWORD: ${{ secrets.CI_KEYSTORE_PASS }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: opencode-v1.0.0
+          name: OpenCode v1.0.0
+          body: |
+            OpenCode – nativní vývojové prostředí pro Android.
+            Distribuce přes GitHub Actions (release klíč z secrets, signováno, updatovatelné).
+          files: app/build/outputs/apk/release/app-release.apk
+          fail_on_unmatched_files: true
