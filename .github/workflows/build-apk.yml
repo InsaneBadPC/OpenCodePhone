@@ -34,9 +34,10 @@ jobs:
           sdkmanager "platforms;android-36" "build-tools;36.0.0" >/dev/null 2>&1 || true
 
       - name: Restore release keystore
-        run: base64 -d <<< "${CI_KEYSTORE}" > ci-upload.jks
+        run: base64 -d <<< "${CI_KEYSTORE}" > "${KEYSTORE_PATH}"
         env:
           CI_KEYSTORE: ${{ secrets.CI_KEYSTORE }}
+          KEYSTORE_PATH: ${{ github.workspace }}/ci-upload.jks
 
       - name: Write .env (GEMINI_API_KEY)
         run: printf 'GEMINI_API_KEY=%s\n' "${KEY}" > .env
@@ -46,7 +47,7 @@ jobs:
       - name: Build release APK
         run: gradle assembleRelease --no-daemon
         env:
-          KEYSTORE_PATH: ci-upload.jks
+          KEYSTORE_PATH: ${{ github.workspace }}/ci-upload.jks
           STORE_PASSWORD: ${{ secrets.CI_KEYSTORE_PASS }}
           KEY_PASSWORD: ${{ secrets.CI_KEYSTORE_PASS }}
 
